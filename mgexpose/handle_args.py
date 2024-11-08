@@ -2,16 +2,15 @@
 
 import argparse
 
-from readers import EggnogReader
+from .readers import EggnogReader
 
 
-__version__ = "3.6.0"
-
+from . import __version__
 
 def handle_args():
     """ Argument handling """
     ap = argparse.ArgumentParser(
-        prog="profile_me",
+        prog="mgexpose",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 

@@ -4,7 +4,7 @@ import contextlib
 import logging
 
 
-from islands import GenomicIsland, AnnotatedGenomicIsland, MgeGenomicIsland
+from .islands import GenomicIsland, AnnotatedGenomicIsland, MgeGenomicIsland
 
 
 logger = logging.getLogger(__name__)

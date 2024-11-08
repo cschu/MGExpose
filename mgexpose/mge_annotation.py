@@ -8,17 +8,17 @@ import contextlib
 import logging
 import os
 
-from gene_annotator import GeneAnnotator
-from handle_args import handle_args
-from island_processing import (
+from .gene_annotator import GeneAnnotator
+from .handle_args import handle_args
+from .island_processing import (
     generate_island_set,
     annotate_islands,
     evaluate_islands,
     prepare_precomputed_islands
 )
-from islands import MgeGenomicIsland
-from readers import read_prodigal_gff, read_mge_rules
-from gffio import read_genomic_islands_gff
+from .islands import MgeGenomicIsland
+from .readers import read_prodigal_gff, read_mge_rules
+from .gffio import read_genomic_islands_gff
 
 MGE_TABLE_HEADERS = \
     ("is_tn",) + \

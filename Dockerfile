@@ -10,7 +10,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 RUN apt-get install -y wget python3-pip git gawk
 
-ADD . /opt/software/mgexpose
+ADD DESCRIPTION.md LICENSE README.md setup.cfg setup.py /opt/software/mgexpose/
+ADD mgexpose /opt/software/mgexpose/mgexpose
+ADD assets /opt/software/mgexpose/assets
 
 WORKDIR /opt/software/mgexpose
 

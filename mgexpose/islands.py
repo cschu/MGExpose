@@ -22,8 +22,8 @@ import sys
 from collections import Counter
 from dataclasses import dataclass, field
 
-from gene import Gene
-from recombinases import MgeRule, MGE_ALIASES
+from .gene import Gene
+from .recombinases import MgeRule, MGE_ALIASES
 
 
 logger = logging.getLogger(__name__)

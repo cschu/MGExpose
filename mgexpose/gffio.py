@@ -1,7 +1,7 @@
 """ GFF I/O -- wannabe serialisation module """
 
-from gene import Gene
-from islands import GenomicIsland
+from .gene import Gene
+from .islands import GenomicIsland
 
 
 def read_genomic_islands_gff(fn):
