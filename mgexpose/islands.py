@@ -18,6 +18,7 @@ The MGE type of each MGE Genomic Island is defined by applying MGE Rule.
 import itertools as it
 import logging
 import sys
+import warnings
 
 from collections import Counter
 from dataclasses import dataclass, field
@@ -457,7 +458,8 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
     def is_nested(annotated_mge_metrics):
         n_mges = sum(v for _, v in annotated_mge_metrics)
         if not n_mges:
-            raise UserWarning("No MGEs were assigned to recombinase island")
+            # raise UserWarning("No MGEs were assigned to recombinase island")
+            warnings.warn("No MGEs were assigned to recombinase island")
         # Solitary or nested MGE?
         return n_mges > 1
 
