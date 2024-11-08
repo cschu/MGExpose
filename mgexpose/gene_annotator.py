@@ -1,4 +1,4 @@
-# pylint: disable=R0912,R0913,R0914
+# pylint: disable=R0912,R0913,R0914,R0917
 
 """ Classes for integrating gene annotations. """
 

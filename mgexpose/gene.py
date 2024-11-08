@@ -1,4 +1,4 @@
-# pylint: disable=R0902
+# pylint: disable=R0902,R0917,R0913
 
 """ Gene module """
 

@@ -1,4 +1,4 @@
-# pylint: disable=C0116,C0301,R0902,R0916,R0913
+# pylint: disable=C0116,C0301,R0902,R0916,R0913,R0917
 """
 Data Structures Module
 
@@ -47,6 +47,7 @@ class GenomicIsland:
         "end",
         "gene_list",
     )
+    GFFTYPE = "region"
 
     speci: str = None
     genome: str = None
@@ -59,6 +60,15 @@ class GenomicIsland:
     genes: set = field(default_factory=set)
     # recombinases: list = field(default_factory=list)
     recombinases: Counter = field(default_factory=Counter)
+
+    @staticmethod
+    def parse_id(id_string):
+        """ Parse genome id, contig id, start and end coordinates from id string.
+         Reverses get_id(). """
+        cols = id_string.split("_")
+        contig, coords = cols[3].split(':')
+
+        return "_".join(cols[1:3]), contig, int(coords[0]), int(coords[1])
 
     @staticmethod
     def get_fieldnames():
@@ -191,7 +201,7 @@ class GenomicIsland:
         intermediate_dump=False,
         add_header=False,
     ):
-        
+
         if add_header:
             print("##gff-version 3", file=gff_outstream)
 
@@ -224,7 +234,7 @@ class GenomicIsland:
         print(
             self.contig,
             source,
-            "region",
+            GenomicIsland.GFFTYPE,
             self.start,
             self.end,
             len(self),  # Score field
@@ -359,6 +369,7 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
         "conj_man_count",
         "recombinases",
     )
+    GFFTYPE = "mobile_genetic_element"
 
     integron: int = 0
     cellular: int = 0
@@ -378,7 +389,7 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
         recombinases = (",".join(it.chain(*((r,) * v for r, v in self.recombinases.items())))).lower()
         for name, alias in MGE_ALIASES.items():
             recombinases = recombinases.replace(name, alias)
-        
+
         self.tn3_found = "tn3" in recombinases
         self.ser_found = "c2_n1ser" in recombinases or "ser_ce" in recombinases
 
@@ -387,7 +398,7 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
 
         # self.recombinases = recombinases.split(",") if recombinases else []
         self.recombinases = Counter(recombinases.split(","))
-        
+
         # tag recombinase island with more than 3 recombinases
         self.c_nmi = sum(self.recombinases.values()) > 3
 
@@ -578,7 +589,7 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
         print(
             self.contig,
             source,
-            "mobile_genetic_element",
+            MgeGenomicIsland.GFFTYPE,
             self.start,
             self.end,
             len(self),  # Score field
@@ -624,22 +635,12 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
             )
         except:
             raise ValueError(f"mge string weird? {attribs['mge'].split(',')}")
-        
+
         if mges.get("is_tn"):
             mges["c_tn"] = mges["is_tn"]
             del mges["is_tn"]
 
-        def parseID(id):
-            lst = id.split('_')
-            genome_id = lst[1] + '_' + lst[2]
-            contig_coord = lst[3].split(':')
-            contig = contig_coord[0]
-            coord = contig_coord[1].split('-')
-            start = int(coord[0])
-            end = int(coord[1])
-            return genome_id, contig, start, end
-
-        genome_id, contig, start, end = parseID(attribs["ID"])
+        genome_id, *_ = GenomicIsland.parse_id(attribs["ID"])
         # TODO: check coordinates and ID overlap
         return cls(
             "",  # TODO: where to get/ how to handle specI
