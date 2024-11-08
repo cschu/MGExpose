@@ -99,7 +99,7 @@ class Gene:
             end=int(cols[4]),  # end
             strand=cols[6],  # strand
             recombinase=attribs.get("recombinase"),
-            cluster=attribs.get("cluster"),
+            cluster=attribs.get("cluster") or attribs.get("Cluster"),
             is_core=attribs.get("genome_type") == "COR",
             phage=attribs.get("phage"),
             secretion_system=attribs.get("secretion_system"),
@@ -117,12 +117,17 @@ class Gene:
         genomic_island_id,
         add_functional_annotation=False,
         intermediate_dump=False,
+        add_header=False,
     ):
         """ dump gene to gff record """
+
+        if add_header:
+            print("##gff-version 3", file=gff_outstream)
+
         attribs = {
             "ID": self.id,
             "Parent": genomic_island_id,
-            "Cluster": self.cluster,
+            "cluster": self.cluster,
             "size": len(self),
             "secretion_system": self.secretion_system,
             "secretion_rule": self.secretion_rule,

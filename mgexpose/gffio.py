@@ -1,7 +1,7 @@
 """ GFF I/O -- wannabe serialisation module """
 
 from .gene import Gene
-from .islands import GenomicIsland
+from .islands import GenomicIsland, MgeGenomicIsland
 
 
 def read_genomic_islands_gff(fn):
@@ -20,6 +20,28 @@ def read_genomic_islands_gff(fn):
                     gene = Gene.from_gff(*cols)
                     if island is not None:
                         island.genes.add(gene)
+                        # island.add_gene(gene)
+                    else:
+                        raise ValueError("Found gene but no island.")
+        if island is not None:
+            yield island
+
+def read_mge_genomic_islands_gff(fn):
+    with open(fn, "rt", encoding="UTF-8") as _in:
+        island = None
+        for line in _in:
+            line = line.strip()
+            if line and line[0] != "#":
+                cols = line.split("\t")
+                if cols[2] == "mobile_genetic_element":
+                    if island is not None:
+                        yield island
+                    island = MgeGenomicIsland.from_gff(*cols)
+                elif cols[2] == "gene":
+                    gene = Gene.from_gff(*cols)
+                    if island is not None:
+                        island.genes.add(gene)
+                        # island.add_gene(gene)
                     else:
                         raise ValueError("Found gene but no island.")
         if island is not None:
