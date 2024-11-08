@@ -7,6 +7,7 @@
 import contextlib
 import logging
 import os
+import pathlib
 
 from .gene_annotator import GeneAnnotator
 from .handle_args import handle_args
@@ -282,7 +283,11 @@ def main():
     args = handle_args()
     logger.info("ARGS: %s", str(args))
 
-    debug_dir = os.path.join(args.output_dir, "debug") if args.dump_intermediate_steps else None
+    debug_dir = None    
+    cdir = args.output_dir
+    if args.dump_intermediate_steps:
+        cdir = debug_dir = os.path.join(args.output_dir, "debug")
+    pathlib.Path(cdir).mkdir(exist_ok=True, parents=True)
 
     genomic_islands = None
     if args.command == "denovo":
