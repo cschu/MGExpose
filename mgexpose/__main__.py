@@ -258,14 +258,15 @@ def denovo_annotation(args, debug_dir=None):
             add_functional_annotation=args.add_functional_annotation,
         )
 
-        test_islands = list(read_genomic_islands_gff(f"{out_prefix}.unannotated_islands.gff3"))
-        dump_islands(
-            test_islands,
-            out_prefix + ".test",
-            args.dbformat,
-            write_genes=True,
-            add_functional_annotation=args.add_functional_annotation,
-        )
+        # 
+        # test_islands = list(read_genomic_islands_gff(f"{out_prefix}.unannotated_islands.gff3"))
+        # dump_islands(
+        #     test_islands,
+        #     out_prefix + ".test",
+        #     args.dbformat,
+        #     write_genes=True,
+        #     add_functional_annotation=args.add_functional_annotation,
+        # )
 
     with open(
             os.path.join(args.output_dir, f"{args.genome_id}.gene_info.txt"),
