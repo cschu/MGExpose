@@ -2,6 +2,8 @@
 
 """ Recombinase rules and aliases """
 
+import itertools as it
+
 from dataclasses import dataclass
 
 
@@ -106,7 +108,9 @@ class MgeRule:
         #     return two_tn3 != two_ser_ce or mixed
 
         if sum(island.recombinases.values()) == 2 and self.is_tn and self.ce and island.conj_man_count < 1:
-            recombinase_types = ",".join(list(island.recombinases))
+            # recombinase_types = ",".join(list(island.recombinases))
+            recombinase_types = ",".join(it.chain(*it.chain((r,) * c for r, c in island.recombinases.items())))
+
             mixed = "tn3" in recombinase_types and "ser_ce" in recombinase_types
 
             two_tn3 = recombinase_types.count("tn3") == 2

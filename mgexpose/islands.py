@@ -176,10 +176,10 @@ class GenomicIsland:
     def from_gff(cls, *cols):
         attribs = dict(item.split("=") for item in cols[-1].split(";"))
         recombinases = Counter(
-            dict(
-                item.split(":")
+            {
+                item.split(":")[0]: int(item.split(":")[1])
                 for item in attribs["recombinases"].split(",")
-            )
+            }
         )
 
         return cls(
