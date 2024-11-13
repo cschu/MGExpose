@@ -105,7 +105,7 @@ class MgeRule:
 
         #     return two_tn3 != two_ser_ce or mixed
 
-        if sum(island.recombinases.values()) == 2:
+        if sum(island.recombinases.values()) == 2 and self.is_tn and self.ce and island.conj_man_count < 1:
             recombinase_types = ",".join(list(island.recombinases))
             mixed = "tn3" in recombinase_types and "ser_ce" in recombinase_types
 
