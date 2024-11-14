@@ -97,6 +97,7 @@ def handle_args():
         help="If specified, per gene emapper annotations are stored in the gff."
     )
     # ensure newest eggnog version
+    denovo_ap.add_argument("--extract_islands", type=str)
 
     denovo_ap.set_defaults(func=None)  # TODO
 
