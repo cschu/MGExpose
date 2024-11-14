@@ -18,7 +18,7 @@ def read_fasta(f):
             if seq:
                 yield header, "".join(seq)
                 seq.clear()
-            header = seq[1:]
+            header = line.strip()[1:]
         else:
             seq.append(line.strip())
     if seq:
