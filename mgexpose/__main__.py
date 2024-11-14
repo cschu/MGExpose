@@ -335,6 +335,7 @@ def main():
                 write_gff=args.write_gff,
                 write_genes_to_gff=args.write_genes_to_gff,
                 add_functional_annotation=args.add_functional_annotation,
+                genome_seqs=args.extract_islands,
             )
 
 
