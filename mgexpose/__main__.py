@@ -219,7 +219,16 @@ def write_final_results(
                 for header, seq in read_fasta(genome_seqs):
                     seqid, *_ = header.split(" ")
                     for island in islands_by_contig.get(seqid, []):
-                        attrib_str = ";".join(f"{item[0]}={item[1]}" for item in island.get_attribs().items() if item[1])
+                        attribs = island.get_attribs()
+                        try:
+                            del attribs["ID"]
+                        except KeyError:
+                            pass
+                        try:
+                            del attribs["name"]
+                        except KeyError:
+                            pass
+                        attrib_str = ";".join(f"{item[0]}={item[1]}" for item in attribs.items() if item[1])
                         print(
                             f">{island.get_id()} {attrib_str}", seq[island.start - 1: island.end], sep="\n", file=_out
                         )
