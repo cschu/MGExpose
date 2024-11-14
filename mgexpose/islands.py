@@ -549,23 +549,11 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
 
     def get_id(self):
         return f"MGE_{self.genome}_{self.contig}:{self.start}-{self.end}"
-
-    def to_gff(
-        self,
-        gff_outstream,
-        source_db,
-        write_genes=False,
-        add_functional_annotation=False,
-        intermediate_dump=False,
-        add_header=False,
-    ):
-        if add_header:
-            print("##gff-version 3", file=gff_outstream)
-
-        island_id = self.get_id()
+    
+    def get_attribs(self):
         mge_metrics = self.get_annotated_mge_metrics()
         attribs = {
-            "ID": island_id,
+            "ID": self.get_id(),
             "mge": ",".join(f"{k}:{v}" for k, v in mge_metrics),  # Count each mge type
             "genome_type": Gene.rtype(self.is_core),
             "mge_type": self.mge_num_island_type(self.is_nested(mge_metrics)),
@@ -582,12 +570,48 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
         }
         if self.name:
             attribs["name"] = self.name
+        return attribs
+
+    def to_gff(
+        self,
+        gff_outstream,
+        source_db,
+        write_genes=False,
+        add_functional_annotation=False,
+        intermediate_dump=False,
+        add_header=False,
+    ):
+        if add_header:
+            print("##gff-version 3", file=gff_outstream)
+
+        # island_id = self.get_id()
+        # mge_metrics = self.get_annotated_mge_metrics()
+        # attribs = {
+        #     "ID": island_id,
+        #     "mge": ",".join(f"{k}:{v}" for k, v in mge_metrics),  # Count each mge type
+        #     "genome_type": Gene.rtype(self.is_core),
+        #     "mge_type": self.mge_num_island_type(self.is_nested(mge_metrics)),
+        #     "size": len(self),
+        #     "n_genes": len(self.genes),
+        #     "mgeR": (
+        #         ",".join(
+        #             f"{k}:{v}"
+        #             # for k, v in sorted(Counter(self.recombinases).items())
+        #             for k, v in sorted(self.recombinases.items())
+        #         )
+        #         if self.recombinases else ""
+        #     ),
+        # }
+        # if self.name:
+        #     attribs["name"] = self.name
+        attribs = self.get_attribs()
         attrib_str = ";".join(f"{item[0]}={item[1]}" for item in attribs.items() if item[1])
         # Format the source column
-        if source_db:
-            source = f"proMGE_{source_db}"
-        else:
-            source = "proMGE"
+        source = ("proMGE", f"proMGE_{source_db}")[bool(source_db)]
+        # if source_db:
+        #     source = f"proMGE_{source_db}"
+        # else:
+        #     source = "proMGE"
         print(
             self.contig,
             source,

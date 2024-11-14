@@ -11,6 +11,20 @@ from .chunk_reader import get_lines_from_chunks
 from .recombinases import MgeRule
 
 
+def read_fasta(f):
+    header, seq = None, []
+    for line in get_lines_from_chunks(f):
+        if line[0] == ">":
+            if seq:
+                yield header, "".join(seq)
+                seq.clear()
+            header = seq[1:]
+        else:
+            seq.append(line.strip())
+    if seq:
+        yield header, "".join(seq)
+
+
 def read_prodigal_gff(f):
     """ Prodigal gff output reader.
 

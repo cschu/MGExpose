@@ -5,6 +5,7 @@
 """ Mobile genetic element annotation """
 
 import contextlib
+import gzip
 import logging
 import os
 import pathlib
@@ -18,7 +19,7 @@ from .island_processing import (
     prepare_precomputed_islands
 )
 from .islands import MgeGenomicIsland
-from .readers import read_prodigal_gff, read_mge_rules
+from .readers import read_fasta, read_prodigal_gff, read_mge_rules
 from .gffio import read_genomic_islands_gff
 
 MGE_TABLE_HEADERS = \
@@ -154,6 +155,7 @@ def write_final_results(
     write_gff=True,
     write_genes_to_gff=True,
     add_functional_annotation=False,
+    genome_seqs=None,
 ):
     """ write final results """
 
@@ -180,6 +182,7 @@ def write_final_results(
 
     # Sort the list of MGEGenomicIslands based on contig names
     sorted_islands = sorted(recombinase_islands, key=lambda isl: isl.contig)
+    islands_by_contig = {}
 
     with outstream, gff_outstream:
         # TSV header
@@ -191,6 +194,7 @@ def write_final_results(
 
         # Start recording the outputs
         for island in sorted_islands:
+            islands_by_contig.setdefault(island.contig, []).append(island)
             # TSV: ignore gene-wise annotations; each line is recombinase island,
             # all gene IDs are stored in a gene_list column
             # assert genome_id == island.genome
@@ -206,6 +210,21 @@ def write_final_results(
                     write_genes=write_genes_to_gff,
                     add_functional_annotation=add_functional_annotation,
                 )
+
+        if genome_seqs is not None:
+            with gzip.open(
+                f"{out_prefix}.ffn.gz", 
+                "wt",
+            ) as _out:
+                for header, seq in read_fasta(genome_seqs):
+                    seqid, *_ = header.split(" ")
+                    for island in islands_by_contig.get(seqid, []):
+                        attrib_str = ";".join(f"{item[0]}={item[1]}" for item in island.get_attribs().items() if item[1])
+                        print(
+                            f">{island.get_id()} {attrib_str}", seq[island.start - 1: island.end], sep="\n", file=_out
+                        )
+
+                    
 
 
 def denovo_annotation(args, debug_dir=None):

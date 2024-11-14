@@ -186,5 +186,6 @@ def handle_args_old():
         help="Core/accessory gene sets were precomputed."
     )
     ap.add_argument("--skip_island_identification", action="store_true")
+    ap.add_argument("--extract_islands", type=str)
 
     return ap.parse_args()
