@@ -44,7 +44,7 @@ def read_prodigal_gff(f):
             yield _id, line
 
 
-def read_recombinase_hits(f):
+def read_recombinase_hits(f, pyhmmer=True):
     """ Read hmmer output from recombinase scan.
 
     Returns (gene_id, mge_name) tuples via generator.
@@ -53,7 +53,10 @@ def read_recombinase_hits(f):
         for line in _in:
             line = line.strip()
             if line and line[0] != "#":
-                gene_id, _, mge, *_ = re.split(r"\s+", line)
+                if pyhmmer:
+                    gene_id, mge = line.split("\t")[:2]
+                else:
+                    gene_id, _, mge, *_ = re.split(r"\s+", line)
                 yield gene_id, mge
 
 
