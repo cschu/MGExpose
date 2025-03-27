@@ -165,10 +165,11 @@ class GeneAnnotator:
             use_y_clusters=False,
             core_threshold=None,
             output_dir=None,
+            pyhmmer=True,
     ):
         """ Annotate genes with MGE-relevant data. """
         self.add_recombinases(
-            read_recombinase_hits(recombinases)
+            read_recombinase_hits(recombinases, pyhmmer=pyhmmer,)
         )
         if all(secretion_annotation):
             self.add_secretion_system(

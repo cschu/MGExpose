@@ -261,7 +261,8 @@ def denovo_annotation(args, debug_dir=None):
         clusters=args.cluster_data,
         use_y_clusters=args.use_y_clusters,
         core_threshold=(args.core_threshold, -1)[args.precomputed_core_genes],
-        output_dir=args.output_dir
+        output_dir=args.output_dir,
+        pyhmmer=args.pyhmmer_input,
     )
 
     out_prefix = os.path.join(args.output_dir, args.genome_id)

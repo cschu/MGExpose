@@ -99,6 +99,8 @@ def handle_args():
     # ensure newest eggnog version
     denovo_ap.add_argument("--extract_islands", type=str)
 
+    denovo_ap.add_argument("--pyhmmer_input", action="store_true")
+
     denovo_ap.set_defaults(func=None)  # TODO
 
     identify_mobile_islands_ap = subparsers.add_parser(
