@@ -33,3 +33,37 @@ def read_genomic_islands_gff(fn):
 def read_mge_genomic_islands_gff(fn):
     """ reads a set of mge genomic islands + genes from a gff3 """
     yield from read_island_gff(fn, MgeGenomicIsland)
+
+
+def write_contig(f, contig, length):
+    print(
+        contig, ".", "contig", 1,
+        "." if length is None else length,
+        ".", ".", ".", f"ID={contig}",
+        file=f,
+        sep="\t",
+    )
+
+def write_island_gff(fn, islands_by_contig, contig_data, dbformat, write_genes_to_gff=True, add_functional_annotation=True, intermediate_dump=False,):
+    with open(fn, "wt", encoding="UTF-8") as gff_outstream:
+        # GFF3 header
+        print("##gff-version 3", file=gff_outstream)
+
+        for contig, contig_islands in islands_by_contig.items():
+            write_contig(
+                gff_outstream,
+                contig,
+                None if contig_data is None else contig_data.get(contig),
+            )
+            
+            for island in contig_islands:            
+                # GFF3: add individual genes annotation;
+                # parent lines are recombinase islands, children lines are genes
+                # GFF3 parent term: recombinase island
+                    island.to_gff(
+                        gff_outstream,
+                        source_db=dbformat,
+                        write_genes=write_genes_to_gff,
+                        add_functional_annotation=add_functional_annotation,
+                        intermediate_dump=intermediate_dump,
+                    )
