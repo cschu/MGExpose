@@ -129,7 +129,8 @@ class GeneAnnotator:
                                 occ = cluster_genes[cluster]
                                 gene.is_core = any((
                                     occ / n_genomes > core_threshold,
-                                    (n_genomes <= 20 and occ >= n_genomes - 1),
+                                    (2 < n_genomes <= 20 and occ >= n_genomes - 1),
+                                    (n_genomes == 2 and occ == 2),
                                 ))
                             elif core_threshold == -1:
                                 gene.is_core = is_core
