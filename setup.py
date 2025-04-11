@@ -14,7 +14,7 @@ here = path.abspath(path.dirname("__file__"))
 with open(path.join(here, "DESCRIPTION.md"), encoding="utf-8") as description:
 	description = long_description = description.read()
 
-	name="MGExpose"
+	name="mgexpose"
 	version = mgexpose_version
 
 	if sys.version_info.major != 3:
@@ -31,7 +31,7 @@ with open(path.join(here, "DESCRIPTION.md"), encoding="utf-8") as description:
 		license="MIT",
 		classifiers=[
 			"Development Status :: 4 - Beta",
-			"Topic :: Scientific Engineering :: Bio/Informatics",
+			"Topic :: Scientific/Engineering :: Bio-Informatics",
 			"License :: OSI Approved :: MIT License",
 			"Operating System :: POSIX :: Linux",
 			"Programming Language :: Python :: 3.7",
