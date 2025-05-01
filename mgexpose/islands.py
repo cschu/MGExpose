@@ -88,12 +88,12 @@ class GenomicIsland:
         )
 
     @classmethod
-    def from_region_string(cls, region):
+    def from_region_string(cls, region, genome_id=None,):
         """ Creates island from a predefined region string. """
         _, _, contig, start_end, *_ = region.strip().split(".")
         contig = contig.split(".")[-1]
         start, end = map(int, start_end.split("-"))
-        return cls(None, None, None, contig, start, end, region.strip())
+        return cls(None, genome_id, None, contig, start, end, region.strip())
 
     @classmethod
     def from_gene(cls, gene):

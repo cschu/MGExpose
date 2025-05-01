@@ -40,7 +40,8 @@ def process_islands(genes, genome_id, single_island=None, island_file=None, outp
     """ helper function to declutter main() """
     precomputed_islands = prepare_precomputed_islands(
         single_island=single_island,
-        island_file=island_file
+        island_file=island_file,
+        genome_id=genome_id,
     )
 
     if output_dir:
