@@ -34,7 +34,7 @@ class Gene:
     # specify optional annotations here
     # when adding new class variables,
     # otherwise output will be suppressed.
-    OPTIONAL_ANNOTATIONS = ("phage", "secretion_system", "secretion_rule", "recombinase", "eggnog")
+    OPTIONAL_ANNOTATIONS = ("phage", "secretion_system", "secretion_rule", "recombinase", "eggnog",)
     # these are only optional when core genome calculations
     # are disabled, e.g. co-transferred region inputs
     CLUSTER_ANNOTATIONS = ("cluster", "is_core",)
@@ -42,6 +42,8 @@ class Gene:
     @staticmethod
     def rtype(is_core):
         """ Returns is_core-tag. """
+        if is_core is None:
+            return "NA"
         return ("ACC", "COR")[is_core]
 
     def stringify_eggnog(self):
