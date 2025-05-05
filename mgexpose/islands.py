@@ -248,7 +248,7 @@ class GenomicIsland:
 
         if write_genes:
             # GFF3 child term: genes
-            for gene in sorted(self.genes, key=lambda g: g.id):
+            for gene in sorted(self.genes, key=lambda g: (g.start, g.end,)):
                 gene.to_gff(
                     gff_outstream,
                     genomic_island_id=island_id,
@@ -628,7 +628,7 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
 
         if write_genes:
             # GFF3 child term: genes
-            for gene in sorted(self.genes, key=lambda g: g.id):
+            for gene in sorted(self.genes, key=lambda g: (g.start, g.end,)):
                 gene.to_gff(
                     gff_outstream,
                     genomic_island_id=attribs["ID"],
