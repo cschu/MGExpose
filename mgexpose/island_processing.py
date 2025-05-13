@@ -42,6 +42,7 @@ def check_island_genes(genes, precomputed_islands=None):
                         gene.speci = {island.name}
                     else:
                         gene.speci.add(island.name)
+                    gene.parent = island.name
                     island.add_gene(gene)
 
                 logger.info("%s %s", log_str, str(add_gene))
