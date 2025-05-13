@@ -31,6 +31,8 @@ class Gene:
     secretion_system: str = None
     secretion_rule: dict = None
 
+    parent: str = None
+
     # specify optional annotations here
     # when adding new class variables,
     # otherwise output will be suppressed.
@@ -111,6 +113,7 @@ class Gene:
                 for k in EggnogReader.EMAPPER_FIELDS["v2.1.2"]
                 if attribs.get(k) and k != "description"
             ),
+            parent=attribs.get("Parent", "NA"),
         )
 
     def to_gff(
@@ -128,7 +131,7 @@ class Gene:
 
         attribs = {
             "ID": self.id,
-            "Parent": genomic_island_id,
+            "Parent": self.parent,  # genomic_island_id,
             "cluster": self.cluster,
             "size": len(self),
             "secretion_system": self.secretion_system,
