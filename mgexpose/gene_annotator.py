@@ -19,6 +19,12 @@ from .readers import (
 logger = logging.getLogger(__name__)
 
 
+def is_core(occ, n_genomes, core_threshold=0.95, strict=True):
+    if strict or n_genomes == 2 or n_genomes > 20:
+        return occ / n_genomes > core_threshold
+    return occ >= n_genomes - 1
+
+
 class GeneAnnotator:
     """ GeneAnnotator class. """
     def __init__(
@@ -66,6 +72,7 @@ class GeneAnnotator:
         use_y_clusters=False,
         core_threshold=0.95,
         output_dir=None,
+        strict=True,
     ):
         """ Add information from gene clustering to allow for core/accessory gene classification """
 
@@ -127,11 +134,12 @@ class GeneAnnotator:
 
                             if cluster_genes:
                                 occ = cluster_genes[cluster]
-                                gene.is_core = any((
-                                    occ / n_genomes > core_threshold,
-                                    (2 < n_genomes <= 20 and occ >= n_genomes - 1),
-                                    (n_genomes == 2 and occ == 2),
-                                ))
+                                # gene.is_core = any((
+                                #     occ / n_genomes > core_threshold,
+                                #     (2 < n_genomes <= 20 and occ >= n_genomes - 1),
+                                #     (n_genomes == 2 and occ == 2),
+                                # ))
+                                gene.is_core = is_core(occ, n_genomes, core_threshold=core_threshold, strict=strict,)
                             elif core_threshold == -1:
                                 gene.is_core = is_core
 
