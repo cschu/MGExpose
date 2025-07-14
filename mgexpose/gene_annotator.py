@@ -19,12 +19,6 @@ from .readers import (
 logger = logging.getLogger(__name__)
 
 
-def is_core(occ, n_genomes, core_threshold=0.95, strict=True):
-    if strict or n_genomes == 2 or n_genomes > 20:
-        return occ / n_genomes > core_threshold
-    return occ >= n_genomes - 1
-
-
 class GeneAnnotator:
     """ GeneAnnotator class. """
     def __init__(
@@ -139,7 +133,7 @@ class GeneAnnotator:
                                 #     (2 < n_genomes <= 20 and occ >= n_genomes - 1),
                                 #     (n_genomes == 2 and occ == 2),
                                 # ))
-                                gene.is_core = is_core(occ, n_genomes, core_threshold=core_threshold, strict=strict,)
+                                gene.is_core = Gene.is_core_gene(occ, n_genomes, core_threshold=core_threshold, strict=strict,)
                             elif core_threshold == -1:
                                 gene.is_core = is_core
 
