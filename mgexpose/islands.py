@@ -1,4 +1,4 @@
-# pylint: disable=C0116,C0301,R0902,R0916,R0913,R0917
+# pylint: disable=C0116,C0301,R0902,R0916
 """
 Data Structures Module
 
@@ -18,14 +18,13 @@ The MGE type of each MGE Genomic Island is defined by applying MGE Rule.
 import itertools as it
 import logging
 import sys
-import warnings
+import re
 
 from collections import Counter
 from dataclasses import dataclass, field
 
-from .gene import Gene
-from .recombinases import MgeRule, MGE_ALIASES
-
+from gene import Gene
+from recombinases import MgeRule, MGE_ALIASES
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class GenomicIsland:
     '''The following class describes a generic genomic region
-    with one or more identified recombinases (recombinases).
+    with one or more identified recombinases.
     This region is then referred as Recombinase Island.
     The Genomic Island is represented by contig, start and end
     coordinates, set of genes, some of which are recombinases and MGE machinery.
@@ -48,7 +47,6 @@ class GenomicIsland:
         "end",
         "gene_list",
     )
-    GFFTYPE = "region"
 
     speci: str = None
     genome: str = None
@@ -61,15 +59,6 @@ class GenomicIsland:
     genes: set = field(default_factory=set)
     # recombinases: list = field(default_factory=list)
     recombinases: Counter = field(default_factory=Counter)
-
-    @staticmethod
-    def parse_id(id_string):
-        """ Parse genome id, contig id, start and end coordinates from id string.
-         Reverses get_id(). """
-        cols = id_string.split("_")
-        contig, coords = cols[3].split(':')
-
-        return "_".join(cols[1:3]), contig, int(coords[0]), int(coords[1])
 
     @staticmethod
     def get_fieldnames():
@@ -88,12 +77,12 @@ class GenomicIsland:
         )
 
     @classmethod
-    def from_region_string(cls, region, genome_id=None,):
+    def from_region_string(cls, region):
         """ Creates island from a predefined region string. """
         _, _, contig, start_end, *_ = region.strip().split(".")
         contig = contig.split(".")[-1]
         start, end = map(int, start_end.split("-"))
-        return cls(None, genome_id, None, contig, start, end, region.strip())
+        return cls(None, None, None, contig, start, end, region.strip())
 
     @classmethod
     def from_gene(cls, gene):
@@ -120,8 +109,8 @@ class GenomicIsland:
         genes = (
             f"{gene.id}.{gene.cluster}"
             for gene in sorted(
-                self.genes, key=lambda g: (g.start, g.end, g.strand)
-            )
+            self.genes, key=lambda g: (g.start, g.end, g.strand)
+        )
         )
 
         return "\t".join(
@@ -136,7 +125,7 @@ class GenomicIsland:
         """ Adds a gene to the island. """
         if gene not in self.genes:
             self.end = max(self.end, gene.end)
-            if gene.recombinase:
+            if gene.recombinase is not None:
                 # self.recombinases.append(
                 #     (f"{gene.id}.{gene.cluster}", gene.recombinase)
                 # )
@@ -174,13 +163,20 @@ class GenomicIsland:
 
     @classmethod
     def from_gff(cls, *cols):
-        attribs = dict(item.split("=") for item in cols[-1].split(";"))
-        recombinases = Counter(
-            {
-                item.split(":")[0]: int(item.split(":")[1])
-                for item in attribs["recombinases"].split(",")
-            }
-        )
+        try:
+            attribs = dict(item.split("=") for item in cols[-1].split(";"))
+        except:
+            raise ValueError(f"not enough cols? {cols}")
+
+        try:
+            recombinases = Counter(
+                dict(
+                    item.split(":")
+                    for item in attribs["recombinases"].split(",")
+                )
+            )
+        except:
+            raise ValueError(f"recombinase string weird? {attribs['recombinases'].split(',')}")
 
         return cls(
             attribs["specI"],
@@ -189,23 +185,12 @@ class GenomicIsland:
             cols[0],  # contig
             int(cols[3]),  # start
             int(cols[4]),  # end
-            genes=set(),
             recombinases=recombinases,
+            genes=set(),
         )
 
-    def to_gff(
-        self,
-        gff_outstream,
-        source_db,
-        write_genes=False,
-        add_functional_annotation=False,
-        intermediate_dump=False,
-        add_header=False,
-    ):
-
-        if add_header:
-            print("##gff-version 3", file=gff_outstream)
-
+    def to_gff(self, gff_outstream, source_db, write_genes=False, add_functional_annotation=False,
+               intermediate_dump=False):
         island_id = self.get_id()
         attribs = {
             "ID": island_id,
@@ -222,7 +207,7 @@ class GenomicIsland:
                 )
                 if self.recombinases else ""
             ),
-            "specI": self.speci,
+            "specI": self.speci, #TODO: does it work? 
         }
         if self.name:
             attribs["name"] = self.name
@@ -235,7 +220,7 @@ class GenomicIsland:
         print(
             self.contig,
             source,
-            GenomicIsland.GFFTYPE,
+            "region",
             self.start,
             self.end,
             len(self),  # Score field
@@ -248,7 +233,7 @@ class GenomicIsland:
 
         if write_genes:
             # GFF3 child term: genes
-            for gene in sorted(self.genes, key=lambda g: (g.start, g.end,)):
+            for gene in sorted(self.genes, key=lambda g: g.id):
                 gene.to_gff(
                     gff_outstream,
                     genomic_island_id=island_id,
@@ -370,7 +355,6 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
         "conj_man_count",
         "recombinases",
     )
-    GFFTYPE = "mobile_genetic_element"
 
     integron: int = 0
     cellular: int = 0
@@ -385,9 +369,14 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
     tn3_found: bool = False
     ser_found: bool = False
 
+    mge: Counter = field(default_factory=Counter)
+    mge_type: str = None
+    size: int = 0
+    n_genes: int = 0
+
     def __post_init__(self):
         """ Apply annotations. """
-        recombinases = (",".join(it.chain(*((r,) * v for r, v in self.recombinases.items())))).lower()
+        recombinases = (",".join(r for _, r in self.get_recombinases())).lower()
         for name, alias in MGE_ALIASES.items():
             recombinases = recombinases.replace(name, alias)
 
@@ -396,12 +385,12 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
 
         # integron
         self.integron = int("integron" in recombinases)
+        # tag recombinase island with more than 3 recombinases
+        # self.c_nmi = int(len(self.recombinases) > 3)
+        self.c_nmi = sum(self.recombinases.values())
 
         # self.recombinases = recombinases.split(",") if recombinases else []
         self.recombinases = Counter(recombinases.split(","))
-
-        # tag recombinase island with more than 3 recombinases
-        self.c_nmi = sum(self.recombinases.values()) > 3
 
     def __str__(self):
         """ String representation. """
@@ -424,7 +413,55 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
                 self.name,
             )
         )
-
+    
+    @staticmethod
+    def parse_mge_id(mge_id):
+        """
+        Generalized parser for MGE IDs.
+        
+        Returns:
+            genome_id (str): parsed bin or genome identifier
+            contig (str): contig name (usually something like k141_32063)
+            start (int): start coordinate
+            end (int): end coordinate
+        """
+        try:
+            # Extract coordinates
+            coord_match = re.search(r":(\d+)-(\d+)$", mge_id)
+            if not coord_match:
+                raise ValueError("No coordinates found in MGE ID.")
+            start, end = map(int, coord_match.groups())
+    
+            # Remove leading MGE_ and SPIRE_ (if present)
+            cleaned = mge_id
+            if cleaned.startswith("MGE_"):
+                cleaned = cleaned[4:]
+            if cleaned.startswith("SPIRE_"):
+                cleaned = cleaned[6:]
+    
+            # Strip coordinates
+            core = cleaned.split(':')[0]
+    
+            # Assembly-style pattern (e.g., GCA_019800745.1)
+            if re.match(r"GCA_[\d.]+", core):
+                genome_id = core.split('_')[0] + '_' + core.split('_')[1]
+                contig = core.split('.')[-1]
+                return genome_id, contig, start, end
+    
+            # Bin-style pattern: extract contig and genome_id
+            kmer_match = re.search(r"(_k\d+_\d+)$", core)
+            if kmer_match:
+                contig = kmer_match.group(1)[1:]  # remove leading underscore
+                genome_id = core[: -len(kmer_match.group(1))]  # remove contig
+                return genome_id, contig, start, end
+    
+            # Fallback for unknown formats
+            raise ValueError(f"Unrecognized MGE ID format: {mge_id}")
+    
+        except Exception as e:
+            raise ValueError(f"Failed to parse MGE ID '{mge_id}': {e}")
+    
+    
     def get_mge_metrics(self):
         """ Cast mge metrics to int. """
         return tuple(
@@ -458,8 +495,7 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
     def is_nested(annotated_mge_metrics):
         n_mges = sum(v for _, v in annotated_mge_metrics)
         if not n_mges:
-            # raise UserWarning("No MGEs were assigned to recombinase island")
-            warnings.warn("No MGEs were assigned to recombinase island")
+            raise UserWarning("No MGEs were assigned to recombinase island")
         # Solitary or nested MGE?
         return n_mges > 1
 
@@ -519,7 +555,7 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
             self.c_tn = patch_c_tn
 
         if outstream:
-            print(self, sep="\t", file=outstream,)
+            print(self, sep="\t", file=outstream, )
 
         # previous step in some cases generates overlap between Phage/Phage_like and Mobility island
         # this step specifically resolves such instances based on recombinase presence and presence/
@@ -537,7 +573,7 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
             self.phage, self.c_mi = True, False
 
         if outstream2:
-            print(self, sep="\t", file=outstream2,)
+            print(self, sep="\t", file=outstream2, )
 
     @classmethod
     def from_annotated_genomic_island(cls, ag_island):
@@ -549,11 +585,13 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
 
     def get_id(self):
         return f"MGE_{self.genome}_{self.contig}:{self.start}-{self.end}"
-    
-    def get_attribs(self):
+        
+
+    def to_gff(self, gff_outstream, source_db, write_genes=False, add_functional_annotation=False):
+        island_id = self.get_id()
         mge_metrics = self.get_annotated_mge_metrics()
         attribs = {
-            "ID": self.get_id(),
+            "ID": island_id,
             "mge": ",".join(f"{k}:{v}" for k, v in mge_metrics),  # Count each mge type
             "genome_type": Gene.rtype(self.is_core),
             "mge_type": self.mge_num_island_type(self.is_nested(mge_metrics)),
@@ -570,52 +608,16 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
         }
         if self.name:
             attribs["name"] = self.name
-        return attribs
-
-    def to_gff(
-        self,
-        gff_outstream,
-        source_db,
-        write_genes=False,
-        add_functional_annotation=False,
-        intermediate_dump=False,
-        add_header=False,
-    ):
-        if add_header:
-            print("##gff-version 3", file=gff_outstream)
-
-        # island_id = self.get_id()
-        # mge_metrics = self.get_annotated_mge_metrics()
-        # attribs = {
-        #     "ID": island_id,
-        #     "mge": ",".join(f"{k}:{v}" for k, v in mge_metrics),  # Count each mge type
-        #     "genome_type": Gene.rtype(self.is_core),
-        #     "mge_type": self.mge_num_island_type(self.is_nested(mge_metrics)),
-        #     "size": len(self),
-        #     "n_genes": len(self.genes),
-        #     "mgeR": (
-        #         ",".join(
-        #             f"{k}:{v}"
-        #             # for k, v in sorted(Counter(self.recombinases).items())
-        #             for k, v in sorted(self.recombinases.items())
-        #         )
-        #         if self.recombinases else ""
-        #     ),
-        # }
-        # if self.name:
-        #     attribs["name"] = self.name
-        attribs = self.get_attribs()
         attrib_str = ";".join(f"{item[0]}={item[1]}" for item in attribs.items() if item[1])
         # Format the source column
-        source = ("proMGE", f"proMGE_{source_db}")[bool(source_db)]
-        # if source_db:
-        #     source = f"proMGE_{source_db}"
-        # else:
-        #     source = "proMGE"
+        if source_db:
+            source = f"proMGE_{source_db}"
+        else:
+            source = "proMGE"
         print(
             self.contig,
             source,
-            MgeGenomicIsland.GFFTYPE,
+            "mobile_genetic_element",
             self.start,
             self.end,
             len(self),  # Score field
@@ -628,10 +630,10 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
 
         if write_genes:
             # GFF3 child term: genes
-            for gene in sorted(self.genes, key=lambda g: (g.start, g.end,)):
+            for gene in sorted(self.genes, key=lambda g: g.id):
                 gene.to_gff(
                     gff_outstream,
-                    genomic_island_id=attribs["ID"],
+                    genomic_island_id=island_id,
                     add_functional_annotation=add_functional_annotation,
                 )
 
@@ -662,12 +664,8 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
         except:
             raise ValueError(f"mge string weird? {attribs['mge'].split(',')}")
 
-        if mges.get("is_tn"):
-            mges["c_tn"] = mges["is_tn"]
-            del mges["is_tn"]
+        genome_id, contig, start, end = cls.parse_mge_id(attribs["ID"])
 
-        genome_id, *_ = GenomicIsland.parse_id(attribs["ID"])
-        # TODO: check coordinates and ID overlap
         return cls(
             "",  # TODO: where to get/ how to handle specI
             genome_id,
@@ -676,11 +674,10 @@ class MgeGenomicIsland(AnnotatedGenomicIsland):
             int(cols[3]),  # start
             int(cols[4]),  # end
             recombinases=recombinases,
-            # mge=mges,
-            **mges,
-            # mge_type=attribs["mge_type"],
-            # size=int(attribs["size"]),
-            # n_genes=int(attribs["n_genes"]),
+            mge=mges,
+            mge_type=attribs["mge_type"],
+            size=int(attribs["size"]),
+            n_genes=int(attribs["n_genes"]),
             genes=set(),
         )
 

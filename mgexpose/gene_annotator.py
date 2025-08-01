@@ -1,4 +1,4 @@
-# pylint: disable=R0912,R0913,R0914,R0917
+# pylint: disable=R0912,R0913,R0914
 
 """ Classes for integrating gene annotations. """
 
@@ -6,10 +6,10 @@ import logging
 
 from contextlib import nullcontext
 
-from .clustering_parser import parse_full_seq_clusters, parse_y_clusters, parse_db_clusters
-from .gene import Gene
-from .phage import PhageDetection
-from .readers import (
+from clustering_parser import parse_full_seq_clusters, parse_y_clusters, parse_db_clusters
+from gene import Gene
+from phage import PhageDetection
+from readers import (
     EggnogReader,
     parse_macsyfinder_report,
     read_recombinase_hits,
@@ -66,7 +66,6 @@ class GeneAnnotator:
         use_y_clusters=False,
         core_threshold=0.95,
         output_dir=None,
-        strict=True,
     ):
         """ Add information from gene clustering to allow for core/accessory gene classification """
 
@@ -128,12 +127,10 @@ class GeneAnnotator:
 
                             if cluster_genes:
                                 occ = cluster_genes[cluster]
-                                # gene.is_core = any((
-                                #     occ / n_genomes > core_threshold,
-                                #     (2 < n_genomes <= 20 and occ >= n_genomes - 1),
-                                #     (n_genomes == 2 and occ == 2),
-                                # ))
-                                gene.is_core = Gene.is_core_gene(occ, n_genomes, core_threshold=core_threshold, strict=strict,)
+                                gene.is_core = any((
+                                    occ / n_genomes > core_threshold,
+                                    (n_genomes <= 20 and occ >= n_genomes - 1),
+                                ))
                             elif core_threshold == -1:
                                 gene.is_core = is_core
 
@@ -168,11 +165,10 @@ class GeneAnnotator:
             use_y_clusters=False,
             core_threshold=None,
             output_dir=None,
-            pyhmmer=True,
     ):
         """ Annotate genes with MGE-relevant data. """
         self.add_recombinases(
-            read_recombinase_hits(recombinases, pyhmmer=pyhmmer,)
+            read_recombinase_hits(recombinases)
         )
         if all(secretion_annotation):
             self.add_secretion_system(

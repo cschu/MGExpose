@@ -7,22 +7,8 @@ import gzip
 import re
 import sys
 
-from .chunk_reader import get_lines_from_chunks
-from .recombinases import MgeRule
-
-
-def read_fasta(f):
-    header, seq = None, []
-    for line in get_lines_from_chunks(f):
-        if line[0] == ">":
-            if seq:
-                yield header, "".join(seq)
-                seq.clear()
-            header = line.strip()[1:]
-        else:
-            seq.append(line.strip())
-    if seq:
-        yield header, "".join(seq)
+from chunk_reader import get_lines_from_chunks
+from recombinases import MgeRule
 
 
 def read_prodigal_gff(f):
@@ -44,7 +30,7 @@ def read_prodigal_gff(f):
             yield _id, line
 
 
-def read_recombinase_hits(f, pyhmmer=True):
+def read_recombinase_hits(f):
     """ Read hmmer output from recombinase scan.
 
     Returns (gene_id, mge_name) tuples via generator.
@@ -53,10 +39,7 @@ def read_recombinase_hits(f, pyhmmer=True):
         for line in _in:
             line = line.strip()
             if line and line[0] != "#":
-                if pyhmmer:
-                    gene_id, mge = line.split("\t")[:2]
-                else:
-                    gene_id, _, mge, *_ = re.split(r"\s+", line)
+                gene_id, _, mge, *_ = re.split(r"\s+", line)
                 yield gene_id, mge
 
 
@@ -213,3 +196,4 @@ class EggnogReader:
                         )
                         phage_signal = (None, eggnog_freetext)[is_phage]
                     yield gene_id, phage_signal, eggnog_gene_ann
+

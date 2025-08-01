@@ -2,15 +2,16 @@
 
 import argparse
 
-from .readers import EggnogReader
+from readers import EggnogReader
 
 
-from . import __version__
+__version__ = "3.6.0"
+
 
 def handle_args():
     """ Argument handling """
     ap = argparse.ArgumentParser(
-        prog="mgexpose",
+        prog="profile_me",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
@@ -97,9 +98,6 @@ def handle_args():
         help="If specified, per gene emapper annotations are stored in the gff."
     )
     # ensure newest eggnog version
-    denovo_ap.add_argument("--extract_islands", type=str)
-
-    denovo_ap.add_argument("--pyhmmer_input", action="store_true")
 
     denovo_ap.set_defaults(func=None)  # TODO
 
@@ -189,6 +187,5 @@ def handle_args_old():
         help="Core/accessory gene sets were precomputed."
     )
     ap.add_argument("--skip_island_identification", action="store_true")
-    ap.add_argument("--extract_islands", type=str)
 
     return ap.parse_args()

@@ -1,10 +1,10 @@
-# pylint: disable=R0902,R0917,R0913
+# pylint: disable=R0902
 
 """ Gene module """
 
 from dataclasses import dataclass
 
-from .readers import EggnogReader
+from readers import EggnogReader
 
 
 @dataclass
@@ -34,7 +34,7 @@ class Gene:
     # specify optional annotations here
     # when adding new class variables,
     # otherwise output will be suppressed.
-    OPTIONAL_ANNOTATIONS = ("phage", "secretion_system", "secretion_rule", "recombinase", "eggnog",)
+    OPTIONAL_ANNOTATIONS = ("phage", "secretion_system", "secretion_rule", "recombinase", "eggnog")
     # these are only optional when core genome calculations
     # are disabled, e.g. co-transferred region inputs
     CLUSTER_ANNOTATIONS = ("cluster", "is_core",)
@@ -42,15 +42,7 @@ class Gene:
     @staticmethod
     def rtype(is_core):
         """ Returns is_core-tag. """
-        if is_core is None:
-            return "NA"
         return ("ACC", "COR")[is_core]
-    
-    @staticmethod
-    def is_core_gene(occ, n_genomes, core_threshold=0.95, strict=True):
-        if strict or n_genomes == 2 or n_genomes > 20:
-            return occ / n_genomes > core_threshold
-        return occ >= n_genomes - 1
 
     def stringify_eggnog(self):
         """ convert eggnog annotation into gff-col9 key-value pairs """
@@ -107,16 +99,12 @@ class Gene:
             end=int(cols[4]),  # end
             strand=cols[6],  # strand
             recombinase=attribs.get("recombinase"),
-            cluster=attribs.get("cluster") or attribs.get("Cluster"),
+            cluster=attribs.get("cluster"),
             is_core=attribs.get("genome_type") == "COR",
             phage=attribs.get("phage"),
             secretion_system=attribs.get("secretion_system"),
             secretion_rule=attribs.get("secretion_rule"),
-            eggnog=tuple(
-                (k, attribs.get(k))
-                for k in EggnogReader.EMAPPER_FIELDS["v2.1.2"]
-                if attribs.get(k) and k != "description"
-            ),
+            eggnog=tuple((k, attribs.get(k)) for k in EggnogReader.EMAPPER_FIELDS["v2.1.2"] if attribs.get(k) and k != "description"),
         )
 
     def to_gff(
@@ -125,17 +113,12 @@ class Gene:
         genomic_island_id,
         add_functional_annotation=False,
         intermediate_dump=False,
-        add_header=False,
     ):
         """ dump gene to gff record """
-
-        if add_header:
-            print("##gff-version 3", file=gff_outstream)
-
         attribs = {
             "ID": self.id,
             "Parent": genomic_island_id,
-            "cluster": self.cluster,
+            "Cluster": self.cluster,
             "size": len(self),
             "secretion_system": self.secretion_system,
             "secretion_rule": self.secretion_rule,
