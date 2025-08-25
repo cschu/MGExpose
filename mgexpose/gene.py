@@ -176,7 +176,7 @@ class Gene:
         gene_id = kwargs.get("id")
         genome_id = kwargs.get("genome")
         if composite_gene_id:
-            gene_id = f"{genome_id}_{gene_id}"
+            gene_id = f"{genome_id}.{gene_id}"
         
         secretion_rule = kwargs.get("secretion_rule")
         if secretion_rule is not None:
