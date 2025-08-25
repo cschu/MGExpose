@@ -6,7 +6,7 @@ import re
 
 from dataclasses import dataclass
 
-from .readers import EggnogReader
+from .readers.eggnog import EggnogReader
 
 
 @dataclass
