@@ -19,7 +19,7 @@ from .island_processing import (
     prepare_precomputed_islands
 )
 from .islands import MgeGenomicIsland
-from .readers import read_fasta, read_prodigal_gff, read_mge_rules
+from .readers.readers import read_fasta, read_prodigal_gff, read_mge_rules
 from .gffio import read_genomic_islands_gff
 
 MGE_TABLE_HEADERS = \
