@@ -6,7 +6,7 @@ import logging
 
 from contextlib import nullcontext
 
-from .clustering_parser import parse_full_seq_clusters, parse_y_clusters, parse_db_clusters
+from .clustering_parser import parse_full_seq_clusters, parse_y_clusters, parse_db_clusters, evaluate_y_clusters
 from .gene import Gene
 from .phage import PhageDetection
 from .readers.eggnog import EggnogReader
