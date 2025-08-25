@@ -8,6 +8,7 @@ import re
 import sys
 
 from .chunk_reader import get_lines_from_chunks
+from .gene import Gene
 from .recombinases import MgeRule
 
 
@@ -24,24 +25,47 @@ def read_fasta(f):
     if seq:
         yield header, "".join(seq)
 
+def read_preannotated_genes(f, composite_gene_ids=False,):
+    """ Read genes from previous run via gene_info.txt.
 
-def read_prodigal_gff(f):
+    Returns Gene objects via generator.
+    """
+    header = None
+    for line in get_lines_from_chunks(f):
+        line = line.strip().split("\t")
+        if header is None:
+            header = line
+        else:
+            line = [(item, None)[item == "None"] for item in line]
+            yield Gene.from_geneinfo(composite_gene_id=composite_gene_ids, **dict(zip(header, line)))
+
+def read_prodigal_gff(f, genome_id, speci, composite_gene_ids=False,):
     """ Prodigal gff output reader.
 
-    Returns (gene_id, gff_line) tuples via generator.
+    Returns Gene objects via generator.
     """
     for line in get_lines_from_chunks(f):
         line = line.strip()
         if line and line[0] != "#":
-            line = line.split("\t")
-            _id = [
+            contig, _, _, start, end, _, strand, _, attribs = line.split("\t")
+            gene_id = [
                 item.split("=")[1]
-                for item in line[8].split(";")
+                for item in attribs.split(";")
                 if item.startswith("ID")
             ][0]
-            # gene_id = f"{line[0]}_{_id.split('_')[1]}"
-            # yield gene_id, line
-            yield _id, line
+            
+            if composite_gene_ids:
+                gene_id = f'{contig}_{gene_id.split("_")[-1]}'
+
+            yield Gene(
+                id=gene_id,
+                genome=genome_id,
+                speci=speci,
+                contig=contig,
+                start=int(start),
+                end=int(end),
+                strand=strand,
+            )
 
 
 def read_recombinase_hits(f, pyhmmer=True):

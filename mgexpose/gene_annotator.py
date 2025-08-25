@@ -28,30 +28,34 @@ class GeneAnnotator:
         genes,
         include_genome_id=False,
         has_batch_data=False,
-        dbformat=None
+        # dbformat=None
     ):
         logger.info("Creating new %s for genome=%s specI=%s", self.__class__, genome_id, speci)
         self.genome_id = genome_id
         self.speci = speci
-        self.genes = {}
         self.has_batch_data = has_batch_data
         self.include_genome_id = include_genome_id
 
-        for gene_id, annotation in genes:
+        self.genes = {
+            gene.id: gene
+            for gene in genes
+        }
+        
+        # for gene_id, annotation in genes:
 
-            if dbformat != "PG3":
-                gene_id = f'{annotation[0]}_{gene_id.split("_")[-1]}'
+        #     if dbformat != "PG3":
+        #         gene_id = f'{annotation[0]}_{gene_id.split("_")[-1]}'
 
-            logger.info("Adding gene %s", gene_id)
-            self.genes[gene_id] = Gene(
-                id=gene_id,
-                genome=self.genome_id,
-                speci=self.speci,
-                contig=annotation[0],
-                start=int(annotation[3]),
-                end=int(annotation[4]),
-                strand=annotation[6],
-            )
+        #     logger.info("Adding gene %s", gene_id)
+        #     self.genes[gene_id] = Gene(
+        #         id=gene_id,
+        #         genome=self.genome_id,
+        #         speci=self.speci,
+        #         contig=annotation[0],
+        #         start=int(annotation[3]),
+        #         end=int(annotation[4]),
+        #         strand=annotation[6],
+        #     )
 
     def add_recombinases(self, recombinases):
         """ Add information from recombinase scan """
@@ -71,7 +75,10 @@ class GeneAnnotator:
         """ Add information from gene clustering to allow for core/accessory gene classification """
 
         if use_y_clusters:
-            parse_y_clusters(cluster_data, self.genes)
+            if core_threshold == -1:
+                parse_y_clusters(cluster_data, self.genes)
+            else:
+                evaluate_y_clusters(cluster_data, self.genes, core_threshold=core_threshold,)
             return None
 
         write_data = False

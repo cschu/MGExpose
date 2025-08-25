@@ -239,13 +239,27 @@ def write_final_results(
 
 def denovo_annotation(args, debug_dir=None):
     """ denovo annotation """
+
+    if args.input_gene_type == "prodigal":
+        genes = read_prodigal_gff(
+            args.input_genes,
+            args.genome_id,
+            args.speci,
+            composite_gene_ids=args.dbformat != "PG3",
+        )
+    else:
+        genes = read_preannotated_genes(
+            args.input_genes,
+            composite_gene_ids=args.dbformat != "PG3",
+        )
+    
+
     annotator = GeneAnnotator(
         args.genome_id,
         args.speci,
-        read_prodigal_gff(args.prodigal_gff),
+        genes,   
         include_genome_id=args.include_genome_id,
         has_batch_data=args.allow_batch_data,
-        dbformat=args.dbformat,
     )
 
     annotated_genes = annotator.annotate_genes(
@@ -261,7 +275,7 @@ def denovo_annotation(args, debug_dir=None):
         ),
         clusters=args.cluster_data,
         use_y_clusters=args.use_y_clusters,
-        core_threshold=(args.core_threshold, -1)[args.precomputed_core_genes],
+        core_threshold=(args.core_threshold, -1)[not args.use_y_clusters and args.precomputed_core_genes],
         output_dir=args.output_dir,
         pyhmmer=args.pyhmmer_input,
     )
