@@ -19,7 +19,7 @@ from .island_processing import (
     prepare_precomputed_islands
 )
 from .islands import MgeGenomicIsland
-from .readers.readers import read_fasta, read_prodigal_gff, read_mge_rules
+from .readers.readers import read_fasta, read_prodigal_gff, read_mge_rules, read_preannotated_genes
 from .gffio import read_genomic_islands_gff
 
 MGE_TABLE_HEADERS = \
@@ -263,7 +263,7 @@ def denovo_annotation(args, debug_dir=None):
     )
 
     annotated_genes = annotator.annotate_genes(
-        args.recombinase_hits,
+        args.recombinase_hits if args.input_gene_type == "prodigal" else None,
         (
             args.phage_eggnog_data,
             args.phage_filter_terms,

@@ -178,9 +178,12 @@ class GeneAnnotator:
             pyhmmer=True,
     ):
         """ Annotate genes with MGE-relevant data. """
-        self.add_recombinases(
-            read_recombinase_hits(recombinases, pyhmmer=pyhmmer,)
-        )
+        if recombinases is not None:
+            ## THIS IS TEMPORARY -- USUALLY RECOMBINASES HAVE TO BE HERE,
+            ### BUT NOW I AM TESTING RE-ANNOTATION
+            self.add_recombinases(
+                read_recombinase_hits(recombinases, pyhmmer=pyhmmer,)
+            )
         if all(secretion_annotation):
             self.add_secretion_system(
                 parse_macsyfinder_report(
