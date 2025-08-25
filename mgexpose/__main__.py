@@ -267,12 +267,12 @@ def denovo_annotation(args, debug_dir=None):
         (
             args.phage_eggnog_data,
             args.phage_filter_terms,
-        ),
+        ) if args.input_gene_type == "prodigal" else None,
         (
             args.txs_macsy_report,
             args.txs_macsy_rules,
             # args.macsy_version,
-        ),
+        ) if args.input_gene_type == "prodigal" else None,
         clusters=args.cluster_data,
         use_y_clusters=args.use_y_clusters,
         core_threshold=(args.core_threshold, -1)[not args.use_y_clusters and args.precomputed_core_genes],

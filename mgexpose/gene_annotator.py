@@ -184,7 +184,7 @@ class GeneAnnotator:
             self.add_recombinases(
                 read_recombinase_hits(recombinases, pyhmmer=pyhmmer,)
             )
-        if all(secretion_annotation):
+        if secretion_annotation is not None and all(secretion_annotation):
             self.add_secretion_system(
                 parse_macsyfinder_report(
                     *secretion_annotation[:2],
