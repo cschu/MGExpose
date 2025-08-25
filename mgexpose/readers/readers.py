@@ -8,7 +8,7 @@ import re
 import sys
 
 from .chunk_reader import get_lines_from_chunks
-from .recombinases import MgeRule
+from ..recombinases import MgeRule
 
 
 def read_fasta(f):
