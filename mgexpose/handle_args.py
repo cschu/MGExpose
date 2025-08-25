@@ -2,7 +2,7 @@
 
 import argparse
 
-from .readers.readers import EggnogReader
+from .readers.eggnog import EggnogReader
 
 
 from . import __version__
