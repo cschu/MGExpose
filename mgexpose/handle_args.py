@@ -12,12 +12,12 @@ def handle_args(args):
     """ Argument handling """
 
     log_ap = argparse.ArgumentParser(prog="mgexpose", add_help=False)
-    log_ap.add_argument("-l", "--log_level", type=int, choices=range(1, 5), default=logging.INFO)
+    log_ap.add_argument("-l", "--log_level", type=int, choices=range(6), default=logging.INFO)
     log_args, _ = log_ap.parse_known_args(args)
 
     try:
         logging.basicConfig(
-            level=log_args.log_level,
+            level=10 * log_args.log_level,
             format='[%(asctime)s] %(message)s'
         )
     except ValueError as invalid_loglevel_err:
