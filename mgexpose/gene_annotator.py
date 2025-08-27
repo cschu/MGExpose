@@ -177,7 +177,7 @@ class GeneAnnotator:
             output_dir=None,
             pyhmmer=True,
     ):
-        print("ANNOTATE_GENES", locals())
+        # print("ANNOTATE_GENES", locals())
         """ Annotate genes with MGE-relevant data. """
         if recombinases is not None:
             ## THIS IS TEMPORARY -- USUALLY RECOMBINASES HAVE TO BE HERE,

@@ -1,18 +1,38 @@
 """ Module for argument handling """
 
 import argparse
+import logging
 
 from .readers.eggnog import EggnogReader
 
 
 from . import __version__
 
-def handle_args():
+def handle_args(args):
     """ Argument handling """
+
+    log_ap = argparse.ArgumentParser(prog="mgexpose", add_help=False)
+    log_ap.add_argument("-l", "--log_level", type=int, choices=range(1, 5), default=logging.INFO)
+    log_args, _ = log_ap.parse_known_args(args)
+
+    try:
+        logging.basicConfig(
+            level=log_args.log_level,
+            format='[%(asctime)s] %(message)s'
+        )
+    except ValueError as invalid_loglevel_err:
+        raise ValueError(f"Invalid log level: {log_args.log_level}") from invalid_loglevel_err
+
     ap = argparse.ArgumentParser(
         prog="mgexpose",
         formatter_class=argparse.RawTextHelpFormatter,
+        parents=(log_ap,),
     )
+
+    # ap = argparse.ArgumentParser(
+    #     prog="mgexpose",
+    #     formatter_class=argparse.RawTextHelpFormatter,
+    # )
 
     ap.add_argument(
         "--version", action="version", version="%(prog)s " + __version__

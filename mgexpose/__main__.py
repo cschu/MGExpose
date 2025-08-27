@@ -9,6 +9,7 @@ import gzip
 import logging
 import os
 import pathlib
+import sys
 
 from .gene_annotator import GeneAnnotator
 from .handle_args import handle_args
@@ -28,10 +29,10 @@ MGE_TABLE_HEADERS = \
     MgeGenomicIsland.TABLE_HEADERS[8:14] + \
     ("mgeR", "name", "genes",)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] %(message)s'
-)
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='[%(asctime)s] %(message)s'
+# )
 
 logger = logging.getLogger(__name__)
 
@@ -325,7 +326,7 @@ def denovo_annotation(args, debug_dir=None):
 def main():
     """ main """
 
-    args = handle_args()
+    args = handle_args(sys.argv[1:])
     logger.info("ARGS: %s", str(args))
 
     debug_dir = None    
